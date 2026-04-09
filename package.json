@@ -1,0 +1,38 @@
+{
+    "name": "react-step-form-workspace",
+    "private": true,
+    "version": "0.1.0",
+    "description": "Monorepo for react-step-form",
+    "license": "MIT",
+    "packageManager": "npm@10.8.2",
+    "workspaces": [
+        "packages/react",
+        "examples/*"
+    ],
+    "scripts": {
+        "build": "npm run build --workspaces",
+        "dev:example": "npm run dev -w @react-step-form/example-basic",
+        "test": "vitest run",
+        "typecheck": "tsc -b --pretty",
+        "lint": "eslint . --ext .ts,.tsx",
+        "check": "npm run lint && npm run typecheck && npm run test",
+        "changeset": "changeset",
+        "version-packages": "changeset version",
+        "release": "changeset publish"
+    },
+    "devDependencies": {
+        "@changesets/cli": "^2.29.5",
+        "@vitejs/plugin-react": "^5.0.0",
+        "@types/node": "^22.14.0",
+        "@types/react": "^19.1.2",
+        "@types/react-dom": "^19.1.2",
+        "@typescript-eslint/eslint-plugin": "^8.29.1",
+        "@typescript-eslint/parser": "^8.29.1",
+        "eslint": "^8.57.1",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "jsdom": "^26.1.0",
+        "typescript": "^5.8.3",
+        "vite": "^7.0.0",
+        "vitest": "^3.1.1"
+    }
+}

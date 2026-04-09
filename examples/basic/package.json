@@ -1,0 +1,16 @@
+{
+    "name": "@react-step-form/example-basic",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "dev": "vite"
+    },
+    "dependencies": {
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "react-step-form": "0.1.0",
+        "zod": "^3.24.3"
+    }
+}
