@@ -1,11 +1,7 @@
 import { Component, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import * as z from "zod";
-import {
-    Controller,
-    FormWizard,
-    useFormWizard,
-} from "@devsam7t3/react-step-form";
+import { Controller, FormWizard, useFormWizard } from "@avenra/react-step-form";
 
 class ErrorBoundary extends Component<
     { children: ReactNode },

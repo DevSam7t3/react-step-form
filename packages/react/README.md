@@ -5,17 +5,13 @@ Flexible, type-safe multi-step forms for React with schema-driven validation and
 ## Installation
 
 ```bash
-npm install @devsam7t3/react-step-form zod
+npm install @avenra/react-step-form zod
 ```
 
 ## Quick Example
 
 ```tsx
-import {
-    Controller,
-    FormWizard,
-    useFormWizard,
-} from "@devsam7t3/react-step-form";
+import { Controller, FormWizard, useFormWizard } from "@avenra/react-step-form";
 import * as z from "zod";
 
 const schema = z.object({

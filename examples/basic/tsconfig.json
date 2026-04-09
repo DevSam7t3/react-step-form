@@ -5,7 +5,7 @@
         "noEmit": true,
         "baseUrl": ".",
         "paths": {
-            "@devsam7t3/react-step-form": ["../../packages/react/src/index.ts"]
+            "@avenra/react-step-form": ["../../packages/react/src/index.ts"]
         }
     },
     "include": ["src", "../../packages/react/src"]

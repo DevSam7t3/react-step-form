@@ -1,5 +1,5 @@
 {
-    "name": "@devsam7t3/react-step-form",
+    "name": "@avenra/react-step-form",
     "version": "0.1.0",
     "description": "Flexible multi-step forms with schema-driven validation",
     "keywords": [
