@@ -1,7 +1,7 @@
 # react-step-form
 
-[![npm version](https://img.shields.io/npm/v/react-step-form.svg)](https://www.npmjs.com/package/react-step-form)
-[![npm downloads](https://img.shields.io/npm/dm/react-step-form.svg)](https://www.npmjs.com/package/react-step-form)
+[![npm version](https://img.shields.io/npm/v/%40devsam7t3%2Freact-step-form.svg)](https://www.npmjs.com/package/@devsam7t3/react-step-form)
+[![npm downloads](https://img.shields.io/npm/dm/%40devsam7t3%2Freact-step-form.svg)](https://www.npmjs.com/package/@devsam7t3/react-step-form)
 [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
 Flexible, type-safe multi-step forms for React with schema-driven validation and fully custom UI.
@@ -20,15 +20,15 @@ Flexible, type-safe multi-step forms for React with schema-driven validation and
 ## Installation
 
 ```bash
-npm install react-step-form zod
+npm install @devsam7t3/react-step-form zod
 ```
 
-`react-step-form` expects a schema object that exposes a `safeParse(data)` method and returns Zod-style issues (`path` + `message`). Zod works out of the box.
+`@devsam7t3/react-step-form` expects a schema object that exposes a `safeParse(data)` method and returns Zod-style issues (`path` + `message`). Zod works out of the box.
 
 ## Quick Start
 
 ```tsx
-import { Controller, FormWizard } from "react-step-form";
+import { Controller, FormWizard } from "@devsam7t3/react-step-form";
 import * as z from "zod";
 
 const schema = z.object({
@@ -244,7 +244,7 @@ Use `persist` to retain values across refreshes:
 
 ```txt
 packages/
-    react/    React public package (`react-step-form`) with internal core logic
+    react/    React public package (`@devsam7t3/react-step-form`) with internal core logic
 examples/
   basic/    runnable usage example
 tests/
