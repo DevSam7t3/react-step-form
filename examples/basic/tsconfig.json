@@ -1,9 +1,12 @@
 {
     "extends": "../../tsconfig.base.json",
-    "references": [{ "path": "../../packages/react" }],
     "compilerOptions": {
         "composite": true,
-        "noEmit": true
+        "noEmit": true,
+        "baseUrl": ".",
+        "paths": {
+            "@devsam7t3/react-step-form": ["../../packages/react/src/index.ts"]
+        }
     },
-    "include": ["src"]
+    "include": ["src", "../../packages/react/src"]
 }
