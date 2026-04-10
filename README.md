@@ -12,8 +12,10 @@ Flexible, type-safe multi-step wizard forms for React with built-in schema-drive
 
 -   🧩 **Headless and unopinionated:** Bring your own UI components. We handle the state, navigation, and validation.
 -   🛡️ **Schema-driven validation:** Provide a single Zod schema for the entire form. Each step only validates its assigned fields.
+-   🧠 **Auto field inference:** Skip `steps[].fields` and infer step fields directly from mounted `Controller` names.
 -   🎛️ **Controller API:** Easily wire any custom or native input type.
 -   🔄 **State persistence:** Built-in support to persist form progress via `localStorage` or `sessionStorage`.
+-   🪟 **Debug mode:** Optional live debug panel via `debug` and `debugPosition`.
 -   📝 **TypeScript-first:** Fully typed API for excellent autocomplete and developer experience.
 -   📂 **Nested field paths:** Seamlessly handle complex data structures like `profile.firstName` or `address.city`.
 
@@ -247,11 +249,20 @@ interface FormWizardProps<TValues> {
     onSubmit: (values: TValues) => void | Promise<void>;
     persist?: boolean | "localStorage" | "sessionStorage";
     persistKey?: string;
+    debug?: boolean;
+    debugPosition?:
+        | "bottom-right"
+        | "bottom-left"
+        | "top-right"
+        | "top-left"
+        | "inline";
     children?: (api: FormWizardRenderApi<TValues>) => React.ReactNode;
 }
 ```
 
 `children` is optional and enables fully custom layouts/navigation. If not provided, the wizard renders the current step with default `Previous/Next/Submit` buttons.
+Set `debug` to `true` to render a live debug panel with current step, values, errors, and resolved step fields.
+Use `debugPosition` to place the panel (`"bottom-right"` by default).
 
 ### `Controller`
 
@@ -318,6 +329,40 @@ Use `persist` to retain values across refreshes:
     // ...other props
 />
 ```
+
+Persistence notes:
+
+-   Stored values are hydrated before first render to avoid empty-state overwrite on refresh.
+-   Storage is only updated when serialized form values actually change.
+
+## Debug Mode
+
+Enable a real-time debug panel while developing forms:
+
+```tsx
+<FormWizard
+    schema={schema}
+    steps={steps}
+    onSubmit={handleSubmit}
+    debug
+    debugPosition="bottom-right"
+/>
+```
+
+Debug panel includes:
+
+-   current step ID and index
+-   resolved step fields (manual or inferred)
+-   current values and errors (JSON)
+-   step validation state
+
+Available `debugPosition` values:
+
+-   `"bottom-right"` (default)
+-   `"bottom-left"`
+-   `"top-right"`
+-   `"top-left"`
+-   `"inline"`
 
 ## Workspace Structure
 

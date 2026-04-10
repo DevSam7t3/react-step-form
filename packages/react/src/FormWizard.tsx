@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, type ReactElement } from "react";
+import { DebugPanel } from "./DebugPanel";
 import {
     WizardStore,
     createFieldRegistry,
@@ -63,6 +64,8 @@ function InternalFormWizard<TValues extends WizardValues>({
     steps,
     onSubmit,
     children,
+    debug,
+    debugPosition,
     storage,
     persistKey,
 }: Omit<FormWizardProps<TValues>, "schema" | "defaultValues" | "persist"> & {
@@ -115,31 +118,39 @@ function InternalFormWizard<TValues extends WizardValues>({
     );
 
     if (children) {
-        return <>{children(api)}</>;
+        return (
+            <>
+                {children(api)}
+                {debug ? <DebugPanel position={debugPosition} /> : null}
+            </>
+        );
     }
 
     return (
-        <div>
-            <StepComponent />
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                <button
-                    type="button"
-                    onClick={api.prev}
-                    disabled={api.isFirstStep}
-                >
-                    Previous
-                </button>
-                {!api.isLastStep ? (
-                    <button type="button" onClick={api.next}>
-                        Next
+        <>
+            <div>
+                <StepComponent />
+                <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                    <button
+                        type="button"
+                        onClick={api.prev}
+                        disabled={api.isFirstStep}
+                    >
+                        Previous
                     </button>
-                ) : (
-                    <button type="button" onClick={api.submit}>
-                        Submit
-                    </button>
-                )}
+                    {!api.isLastStep ? (
+                        <button type="button" onClick={api.next}>
+                            Next
+                        </button>
+                    ) : (
+                        <button type="button" onClick={api.submit}>
+                            Submit
+                        </button>
+                    )}
+                </div>
             </div>
-        </div>
+            {debug ? <DebugPanel position={debugPosition} /> : null}
+        </>
     );
 }
 
@@ -188,6 +199,8 @@ export function FormWizard<TValues extends WizardValues>(
                 steps={props.steps}
                 onSubmit={props.onSubmit}
                 children={props.children}
+                debug={props.debug}
+                debugPosition={props.debugPosition}
                 persistKey={props.persistKey}
                 storage={storage}
             />

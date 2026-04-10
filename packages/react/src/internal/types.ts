@@ -4,6 +4,8 @@ export interface FieldRegistry {
     registerField(name: string, stepId: string): void;
     unregisterField(name: string, stepId: string): void;
     getFieldsForStep(stepId: string): string[];
+    subscribe(listener: () => void): () => void;
+    getVersion(): number;
 }
 
 export interface WizardStep {

@@ -164,6 +164,7 @@ function App() {
                 names.
             </p>
             <FormWizard
+                debug
                 steps={[
                     {
                         id: "account",

@@ -76,6 +76,13 @@ export interface FormWizardRenderApi<TValues extends WizardValues>
     submit: () => boolean;
 }
 
+export type DebugPanelPosition =
+    | "bottom-right"
+    | "bottom-left"
+    | "top-right"
+    | "top-left"
+    | "inline";
+
 export interface FormWizardProps<
     TValues extends WizardValues,
     TSchema extends SchemaLike<TValues> = SchemaLike<TValues>,
@@ -86,6 +93,8 @@ export interface FormWizardProps<
     onSubmit: (values: TValues) => void | Promise<void>;
     persist?: boolean | "localStorage" | "sessionStorage";
     persistKey?: string;
+    debug?: boolean;
+    debugPosition?: DebugPanelPosition;
     children?: (api: FormWizardRenderApi<TValues>) => ReactNode;
 }
 

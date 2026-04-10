@@ -7,6 +7,7 @@ export type {
     ControllerChangeTarget,
     ControllerProps,
     ControllerRenderProps,
+    DebugPanelPosition,
     FieldPath,
     FieldPathValue,
     FieldState,

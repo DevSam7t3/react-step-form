@@ -3,9 +3,18 @@ import type { FieldRegistry } from "./types";
 export function createFieldRegistry(): FieldRegistry {
     const countsByStep = new Map<string, Map<string, number>>();
     const cacheByStep = new Map<string, string[]>();
+    const listeners = new Set<() => void>();
+    let version = 0;
 
     function invalidate(stepId: string): void {
         cacheByStep.delete(stepId);
+    }
+
+    function emit(): void {
+        version += 1;
+        for (const listener of listeners) {
+            listener();
+        }
     }
 
     return {
@@ -21,6 +30,7 @@ export function createFieldRegistry(): FieldRegistry {
 
             if (previous === 0) {
                 invalidate(stepId);
+                emit();
             }
         },
         unregisterField(name, stepId) {
@@ -37,6 +47,7 @@ export function createFieldRegistry(): FieldRegistry {
             if (previous === 1) {
                 stepCounts.delete(name);
                 invalidate(stepId);
+                emit();
             } else {
                 stepCounts.set(name, previous - 1);
             }
@@ -54,6 +65,16 @@ export function createFieldRegistry(): FieldRegistry {
             const fields = Array.from(countsByStep.get(stepId)?.keys() ?? []);
             cacheByStep.set(stepId, fields);
             return fields;
+        },
+        subscribe(listener) {
+            listeners.add(listener);
+
+            return () => {
+                listeners.delete(listener);
+            };
+        },
+        getVersion() {
+            return version;
         },
     };
 }

@@ -18,6 +18,8 @@ interface WizardContextValue<TValues extends WizardValues> {
     registerField: FieldRegistry["registerField"];
     unregisterField: FieldRegistry["unregisterField"];
     getFieldsForStep: FieldRegistry["getFieldsForStep"];
+    subscribeToFieldRegistry: FieldRegistry["subscribe"];
+    getFieldRegistryVersion: FieldRegistry["getVersion"];
     getCurrentStepId: () => string;
 }
 
@@ -39,6 +41,8 @@ export function WizardProvider<TValues extends WizardValues>({
             registerField: fieldRegistry.registerField,
             unregisterField: fieldRegistry.unregisterField,
             getFieldsForStep: fieldRegistry.getFieldsForStep,
+            subscribeToFieldRegistry: fieldRegistry.subscribe,
+            getFieldRegistryVersion: fieldRegistry.getVersion,
             getCurrentStepId: () => store.getSnapshot().currentStep.id,
         }),
         [store, fieldRegistry],
@@ -64,6 +68,8 @@ export function useWizardFieldRegistry(): Pick<
     | "registerField"
     | "unregisterField"
     | "getFieldsForStep"
+    | "subscribeToFieldRegistry"
+    | "getFieldRegistryVersion"
     | "getCurrentStepId"
 > {
     const context = useWizardContextValue();
@@ -72,8 +78,21 @@ export function useWizardFieldRegistry(): Pick<
         registerField: context.registerField,
         unregisterField: context.unregisterField,
         getFieldsForStep: context.getFieldsForStep,
+        subscribeToFieldRegistry: context.subscribeToFieldRegistry,
+        getFieldRegistryVersion: context.getFieldRegistryVersion,
         getCurrentStepId: context.getCurrentStepId,
     };
+}
+
+export function useWizardFieldRegistryVersion(): number {
+    const { subscribeToFieldRegistry, getFieldRegistryVersion } =
+        useWizardFieldRegistry();
+
+    return useSyncExternalStore(
+        subscribeToFieldRegistry,
+        getFieldRegistryVersion,
+        getFieldRegistryVersion,
+    );
 }
 
 function useWizardContextValue(): WizardContextValue<WizardValues> {

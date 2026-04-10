@@ -72,15 +72,17 @@ export function RegistrationWizard() {
                 {
                     id: "account",
                     component: AccountStep,
-                    fields: ["email", "password"],
                 },
                 {
                     id: "profile",
                     component: ProfileStep,
-                    fields: ["firstName", "lastName"],
                 },
             ]}
             schema={schema}
+            persist="localStorage"
+            persistKey="signup-form"
+            debug
+            debugPosition="bottom-right"
             onSubmit={(values) => {
                 console.log(values);
             }}
@@ -102,6 +104,23 @@ const TypedController = Controller<Values>;
     -   Works with both `field.onChange("text")` and `<input {...field} />`.
 -   `steps[].fields` is optional and type-safe against valid form paths.
 -   If `fields` is omitted, the wizard infers step fields from mounted `Controller` names in that step.
+
+## New in This Version
+
+-   Automatic step field inference from mounted `Controller` names.
+-   Persistence hydration before first render (prevents refresh overwrite).
+-   Persistence writes only when values actually change.
+-   Built-in debug panel (`debug`, `debugPosition`) for live state inspection.
+
+```tsx
+<FormWizard
+    schema={schema}
+    steps={steps}
+    onSubmit={handleSubmit}
+    debug
+    debugPosition="inline"
+/>
+```
 
 ## API
 
