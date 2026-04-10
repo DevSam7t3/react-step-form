@@ -1,6 +1,10 @@
-import { useMemo, type ReactElement } from "react";
+import { useEffect, useMemo, type ReactElement } from "react";
 import type { WizardValues } from "./internal";
-import { useWizardSnapshot, useWizardStore } from "./context";
+import {
+    useWizardFieldRegistry,
+    useWizardSnapshot,
+    useWizardStore,
+} from "./context";
 import { extractChangeValue } from "./internal/changeValue";
 import type {
     ControllerChangeArg,
@@ -15,6 +19,17 @@ export function Controller<
 >({ name, render }: ControllerProps<TValues, TName>): ReactElement {
     const store = useWizardStore<TValues>();
     const snapshot = useWizardSnapshot<TValues>();
+    const { registerField, unregisterField, getCurrentStepId } =
+        useWizardFieldRegistry();
+    const currentStepId = getCurrentStepId();
+
+    useEffect(() => {
+        registerField(name, currentStepId);
+
+        return () => {
+            unregisterField(name, currentStepId);
+        };
+    }, [name, currentStepId, registerField, unregisterField]);
 
     const fieldState = useMemo(
         () => ({

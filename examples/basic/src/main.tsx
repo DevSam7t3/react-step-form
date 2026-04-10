@@ -159,17 +159,19 @@ function App() {
     return (
         <main style={{ margin: "2rem auto", maxWidth: 520 }}>
             <h1>react-step-form</h1>
+            <p style={{ marginTop: 0, color: "#555" }}>
+                Step fields are inferred automatically from mounted Controller
+                names.
+            </p>
             <FormWizard
                 steps={[
                     {
                         id: "account",
                         component: AccountStep,
-                        fields: ["email", "password"],
                     },
                     {
                         id: "profile",
                         component: ProfileStep,
-                        fields: ["firstName", "lastName"],
                     },
                 ]}
                 schema={schema}

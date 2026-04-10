@@ -168,7 +168,7 @@ export function RegistrationWizard() {
 ## Type Safety
 
 -   `FormWizard` infers values from `schema` in most cases, so `<FormWizard<Values>>` is optional.
--   `steps[].fields` is type-safe against valid nested paths (`FieldPath<TValues>`).
+-   `steps[].fields` is optional and type-safe against valid nested paths (`FieldPath<TValues>`). If omitted, fields are inferred from `Controller` names rendered in that step.
 -   `Controller` name and `field.value` are type-safe when using a typed alias:
 
 ```tsx
@@ -223,7 +223,7 @@ interface FormWizardProps<TValues> {
     steps: Array<{
         id: string;
         component: React.ComponentType;
-        fields: FieldPath<TValues>[];
+        fields?: FieldPath<TValues>[];
         meta?: Record<string, unknown>;
     }>;
     schema: {
@@ -299,6 +299,7 @@ function useFormWizard<TValues = Record<string, unknown>>(): {
 
 -   You provide one full schema for the entire form.
 -   Each step defines the field paths it owns via `fields`.
+-   Each step can define field paths via `fields`, or let the wizard infer them from `Controller` usage during step render.
 -   `next()` validates only the active step fields.
 -   `submit()` validates all fields and calls `onSubmit` only when valid.
 

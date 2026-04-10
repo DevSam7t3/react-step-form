@@ -12,6 +12,7 @@ import type {
 export class WizardStore<TValues extends WizardValues> {
     private readonly steps: WizardStep[];
     private readonly schemaAdapter: WizardStoreOptions<TValues>["schemaAdapter"];
+    private readonly getFieldsForStep?: WizardStoreOptions<TValues>["getFieldsForStep"];
     private readonly subscribers = new Set<WizardSubscriber<TValues>>();
 
     private state: WizardState<TValues>;
@@ -24,6 +25,7 @@ export class WizardStore<TValues extends WizardValues> {
 
         this.steps = options.steps;
         this.schemaAdapter = options.schemaAdapter;
+        this.getFieldsForStep = options.getFieldsForStep;
         this.state = {
             values: (options.defaultValues ?? {}) as TValues,
             errors: {},
@@ -111,7 +113,8 @@ export class WizardStore<TValues extends WizardValues> {
     }
 
     validateCurrentStep(): ValidationResult {
-        const fields = this.steps[this.state.currentStepIndex].fields;
+        const currentStep = this.steps[this.state.currentStepIndex];
+        const fields = this.resolveStepFields(currentStep);
         const result = this.schemaAdapter.validateFields(
             this.state.values,
             fields,
@@ -182,6 +185,14 @@ export class WizardStore<TValues extends WizardValues> {
         }
 
         return nextErrors;
+    }
+
+    private resolveStepFields(step: WizardStep): string[] {
+        if (step.fields) {
+            return step.fields;
+        }
+
+        return this.getFieldsForStep?.(step.id) ?? [];
     }
 
     private emit(): void {

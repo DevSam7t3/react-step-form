@@ -62,7 +62,7 @@ export type InferValuesFromSchema<TSchema> = TSchema extends SchemaLike<
 export interface FormStep<TValues extends WizardValues = WizardValues> {
     id: string;
     component: ComponentType;
-    fields: FieldPath<TValues>[];
+    fields?: FieldPath<TValues>[];
     meta?: Record<string, unknown>;
     _values?: TValues;
 }

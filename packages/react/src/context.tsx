@@ -6,10 +6,19 @@ import {
     type PropsWithChildren,
     type ReactElement,
 } from "react";
-import type { WizardSnapshot, WizardStore, WizardValues } from "./internal";
+import type {
+    FieldRegistry,
+    WizardSnapshot,
+    WizardStore,
+    WizardValues,
+} from "./internal";
 
 interface WizardContextValue<TValues extends WizardValues> {
     store: WizardStore<TValues>;
+    registerField: FieldRegistry["registerField"];
+    unregisterField: FieldRegistry["unregisterField"];
+    getFieldsForStep: FieldRegistry["getFieldsForStep"];
+    getCurrentStepId: () => string;
 }
 
 const WizardContext = createContext<WizardContextValue<WizardValues> | null>(
@@ -18,9 +27,22 @@ const WizardContext = createContext<WizardContextValue<WizardValues> | null>(
 
 export function WizardProvider<TValues extends WizardValues>({
     store,
+    fieldRegistry,
     children,
-}: PropsWithChildren<{ store: WizardStore<TValues> }>): ReactElement {
-    const value = useMemo(() => ({ store }), [store]);
+}: PropsWithChildren<{
+    store: WizardStore<TValues>;
+    fieldRegistry: FieldRegistry;
+}>): ReactElement {
+    const value = useMemo(
+        () => ({
+            store,
+            registerField: fieldRegistry.registerField,
+            unregisterField: fieldRegistry.unregisterField,
+            getFieldsForStep: fieldRegistry.getFieldsForStep,
+            getCurrentStepId: () => store.getSnapshot().currentStep.id,
+        }),
+        [store, fieldRegistry],
+    );
     return (
         <WizardContext.Provider
             value={value as WizardContextValue<WizardValues>}
@@ -33,12 +55,34 @@ export function WizardProvider<TValues extends WizardValues>({
 export function useWizardStore<
     TValues extends WizardValues,
 >(): WizardStore<TValues> {
+    const context = useWizardContextValue();
+    return context.store as WizardStore<TValues>;
+}
+
+export function useWizardFieldRegistry(): Pick<
+    WizardContextValue<WizardValues>,
+    | "registerField"
+    | "unregisterField"
+    | "getFieldsForStep"
+    | "getCurrentStepId"
+> {
+    const context = useWizardContextValue();
+
+    return {
+        registerField: context.registerField,
+        unregisterField: context.unregisterField,
+        getFieldsForStep: context.getFieldsForStep,
+        getCurrentStepId: context.getCurrentStepId,
+    };
+}
+
+function useWizardContextValue(): WizardContextValue<WizardValues> {
     const context = useContext(WizardContext);
     if (!context) {
         throw new Error("useWizardStore must be used within FormWizard.");
     }
 
-    return context.store as WizardStore<TValues>;
+    return context;
 }
 
 export function useWizardSnapshot<

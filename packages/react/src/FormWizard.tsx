@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, type ReactElement } from "react";
 import {
     WizardStore,
+    createFieldRegistry,
     createZodAdapter,
     type WizardStep,
     type WizardValues,
@@ -37,6 +38,27 @@ function storageFromMode(
     return window.localStorage;
 }
 
+function loadPersistedValues<TValues extends WizardValues>(
+    storage: Storage | null,
+    key: string,
+): Partial<TValues> | undefined {
+    if (!storage) {
+        return undefined;
+    }
+
+    const raw = storage.getItem(key);
+    if (!raw) {
+        return undefined;
+    }
+
+    try {
+        return JSON.parse(raw) as Partial<TValues>;
+    } catch {
+        storage.removeItem(key);
+        return undefined;
+    }
+}
+
 function InternalFormWizard<TValues extends WizardValues>({
     steps,
     onSubmit,
@@ -48,6 +70,7 @@ function InternalFormWizard<TValues extends WizardValues>({
 }): ReactElement {
     const store = useWizardStore<TValues>();
     const snapshot = useWizardSnapshot<TValues>();
+    const lastPersistedRef = useRef<string | null>(null);
     const currentStep = steps[snapshot.currentStepIndex];
     const StepComponent = currentStep.component;
 
@@ -56,10 +79,19 @@ function InternalFormWizard<TValues extends WizardValues>({
             return;
         }
 
-        storage.setItem(
-            persistKey ?? "react-step-form",
-            JSON.stringify(snapshot.values),
-        );
+        const key = persistKey ?? "react-step-form";
+
+        if (lastPersistedRef.current === null) {
+            lastPersistedRef.current = storage.getItem(key);
+        }
+
+        const serializedValues = JSON.stringify(snapshot.values);
+        if (lastPersistedRef.current === serializedValues) {
+            return;
+        }
+
+        storage.setItem(key, serializedValues);
+        lastPersistedRef.current = serializedValues;
     }, [snapshot.values, storage, persistKey]);
 
     const api = useMemo<FormWizardRenderApi<TValues>>(
@@ -120,38 +152,38 @@ export function FormWizard<TSchema extends SchemaLike<WizardValues>>(
 export function FormWizard<TValues extends WizardValues>(
     props: FormWizardProps<TValues>,
 ): ReactElement {
+    const storage = storageFromMode(props.persist);
+    const persistStorageKey = props.persistKey ?? "react-step-form";
     const storeRef = useRef<WizardStore<TValues> | null>(null);
+    const fieldRegistryRef = useRef(createFieldRegistry());
 
     if (!storeRef.current) {
+        const persistedValues = loadPersistedValues<TValues>(
+            storage,
+            persistStorageKey,
+        );
+
+        const initialValues = persistedValues
+            ? ({
+                  ...props.defaultValues,
+                  ...persistedValues,
+              } as Partial<TValues>)
+            : props.defaultValues;
+
         storeRef.current = new WizardStore<TValues>({
             steps: toCoreSteps(props.steps),
             schemaAdapter: createZodAdapter(props.schema),
-            defaultValues: props.defaultValues,
+            defaultValues: initialValues,
+            getFieldsForStep: (stepId) =>
+                fieldRegistryRef.current.getFieldsForStep(stepId),
         });
     }
 
-    const storage = storageFromMode(props.persist);
-
-    useEffect(() => {
-        if (!storage) {
-            return;
-        }
-
-        const raw = storage.getItem(props.persistKey ?? "react-step-form");
-        if (!raw) {
-            return;
-        }
-
-        try {
-            const parsed = JSON.parse(raw) as TValues;
-            storeRef.current?.setValues(parsed);
-        } catch {
-            storage.removeItem(props.persistKey ?? "react-step-form");
-        }
-    }, [storage, props.persistKey]);
-
     return (
-        <WizardProvider store={storeRef.current}>
+        <WizardProvider
+            store={storeRef.current}
+            fieldRegistry={fieldRegistryRef.current}
+        >
             <InternalFormWizard
                 steps={props.steps}
                 onSubmit={props.onSubmit}

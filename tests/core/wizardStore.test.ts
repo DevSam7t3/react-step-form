@@ -84,4 +84,38 @@ describe("WizardStore", () => {
         store.setValue("profile.firstName", "Samir");
         expect(store.validateCurrentStep().valid).toBe(true);
     });
+
+    it("falls back to inferred fields when step fields are omitted", () => {
+        const store = new WizardStore<TestValues>({
+            steps: [{ id: "account" }, { id: "profile" }],
+            schemaAdapter: createZodAdapter(schema),
+            defaultValues: { email: "bad", password: "123" },
+            getFieldsForStep: (stepId) =>
+                stepId === "account"
+                    ? ["email", "password"]
+                    : ["profile.firstName"],
+        });
+
+        expect(store.next()).toBe(false);
+        expect(store.getSnapshot().errors.email).toBe("Email is invalid");
+        expect(store.getSnapshot().errors.password).toBe(
+            "Password is too short",
+        );
+    });
+
+    it("prefers explicit step fields when both explicit and inferred fields exist", () => {
+        const store = new WizardStore<TestValues>({
+            steps: [
+                { id: "account", fields: ["email"] },
+                { id: "profile", fields: ["profile.firstName"] },
+            ],
+            schemaAdapter: createZodAdapter(schema),
+            defaultValues: { email: "bad", password: "123" },
+            getFieldsForStep: () => ["password"],
+        });
+
+        expect(store.next()).toBe(false);
+        expect(store.getSnapshot().errors.email).toBe("Email is invalid");
+        expect(store.getSnapshot().errors.password).toBeUndefined();
+    });
 });

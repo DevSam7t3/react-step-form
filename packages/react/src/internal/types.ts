@@ -1,8 +1,14 @@
 export type WizardValues = Record<string, unknown>;
 
+export interface FieldRegistry {
+    registerField(name: string, stepId: string): void;
+    unregisterField(name: string, stepId: string): void;
+    getFieldsForStep(stepId: string): string[];
+}
+
 export interface WizardStep {
     id: string;
-    fields: string[];
+    fields?: string[];
 }
 
 export interface ValidationResult {
@@ -19,6 +25,7 @@ export interface WizardStoreOptions<TValues extends WizardValues> {
     steps: WizardStep[];
     schemaAdapter: SchemaAdapter<TValues>;
     defaultValues?: Partial<TValues>;
+    getFieldsForStep?: (stepId: string) => string[];
 }
 
 export interface WizardState<TValues extends WizardValues> {

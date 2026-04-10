@@ -100,7 +100,8 @@ const TypedController = Controller<Values>;
 
 -   `field.onChange` accepts either direct values or event-like objects.
     -   Works with both `field.onChange("text")` and `<input {...field} />`.
--   `steps[].fields` is type-safe against valid form paths.
+-   `steps[].fields` is optional and type-safe against valid form paths.
+-   If `fields` is omitted, the wizard infers step fields from mounted `Controller` names in that step.
 
 ## API
 
