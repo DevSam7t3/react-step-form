@@ -41,35 +41,30 @@ const schema = z.object({
 });
 
 type Values = z.infer<typeof schema>;
+const TypedController = Controller<Values>;
 
 function AccountStep() {
     return (
         <div>
             <h2>Account</h2>
-            <Controller
+            <TypedController
                 name="email"
                 render={({ field, fieldState }) => (
                     <label>
                         Email
-                        <input
-                            value={String(field.value ?? "")}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                            placeholder="you@example.com"
-                        />
+                        <input {...field} placeholder="you@example.com" />
                         {fieldState.error ? <p>{fieldState.error}</p> : null}
                     </label>
                 )}
             />
-            <Controller
+            <TypedController
                 name="password"
                 render={({ field, fieldState }) => (
                     <label>
                         Password
                         <input
                             type="password"
-                            value={String(field.value ?? "")}
+                            value={field.value ?? ""}
                             onChange={(event) =>
                                 field.onChange(event.target.value)
                             }
@@ -87,13 +82,13 @@ function ProfileStep() {
     return (
         <div>
             <h2>Profile</h2>
-            <Controller
+            <TypedController
                 name="firstName"
                 render={({ field, fieldState }) => (
                     <label>
                         First Name
                         <input
-                            value={String(field.value ?? "")}
+                            value={field.value ?? ""}
                             onChange={(event) =>
                                 field.onChange(event.target.value)
                             }
@@ -103,13 +98,13 @@ function ProfileStep() {
                     </label>
                 )}
             />
-            <Controller
+            <TypedController
                 name="lastName"
                 render={({ field, fieldState }) => (
                     <label>
                         Last Name
                         <input
-                            value={String(field.value ?? "")}
+                            value={field.value ?? ""}
                             onChange={(event) =>
                                 field.onChange(event.target.value)
                             }
@@ -164,7 +159,7 @@ function App() {
     return (
         <main style={{ margin: "2rem auto", maxWidth: 520 }}>
             <h1>react-step-form</h1>
-            <FormWizard<Values>
+            <FormWizard
                 steps={[
                     {
                         id: "account",

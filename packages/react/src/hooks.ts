@@ -1,4 +1,5 @@
 import type { WizardValues } from "./internal";
+import type { FieldPath, FieldPathValue } from "./types";
 import { useWizardSnapshot, useWizardStore } from "./context";
 
 export function useFormWizard<TValues extends WizardValues = WizardValues>() {
@@ -7,8 +8,12 @@ export function useFormWizard<TValues extends WizardValues = WizardValues>() {
 
     return {
         ...snapshot,
-        setValue: store.setValue.bind(store),
-        getValue: store.getValue.bind(store),
+        setValue: <TName extends FieldPath<TValues>>(
+            name: TName,
+            value: FieldPathValue<TValues, TName>,
+        ) => store.setValue(name, value),
+        getValue: <TName extends FieldPath<TValues>>(name: TName) =>
+            store.getValue<FieldPathValue<TValues, TName>>(name),
         next: store.next.bind(store),
         prev: store.prev.bind(store),
         goTo: store.goTo.bind(store),

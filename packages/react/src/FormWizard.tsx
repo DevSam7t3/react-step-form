@@ -6,7 +6,13 @@ import {
     type WizardValues,
 } from "./internal";
 import { WizardProvider, useWizardSnapshot, useWizardStore } from "./context";
-import type { FormStep, FormWizardProps, FormWizardRenderApi } from "./types";
+import type {
+    FormStep,
+    FormWizardProps,
+    FormWizardRenderApi,
+    InferValuesFromSchema,
+    SchemaLike,
+} from "./types";
 
 function toCoreSteps<TValues extends WizardValues>(
     steps: FormStep<TValues>[],
@@ -105,6 +111,12 @@ function InternalFormWizard<TValues extends WizardValues>({
     );
 }
 
+export function FormWizard<TValues extends WizardValues>(
+    props: FormWizardProps<TValues>,
+): ReactElement;
+export function FormWizard<TSchema extends SchemaLike<WizardValues>>(
+    props: FormWizardProps<InferValuesFromSchema<TSchema>>,
+): ReactElement;
 export function FormWizard<TValues extends WizardValues>(
     props: FormWizardProps<TValues>,
 ): ReactElement {

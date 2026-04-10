@@ -1,21 +1,21 @@
-# react-step-form
+# 🧩 React Step Form
+
+Flexible, type-safe multi-step wizard forms for React with built-in schema-driven validation.
 
 [![npm version](https://img.shields.io/npm/v/%40avenra%2Freact-step-form.svg)](https://www.npmjs.com/package/@avenra/react-step-form)
 [![npm downloads](https://img.shields.io/npm/dm/%40avenra%2Freact-step-form.svg)](https://www.npmjs.com/package/@avenra/react-step-form)
 [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-Flexible, type-safe multi-step forms for React with schema-driven validation and fully custom UI.
+**React Step Form** is a headless, lightweight library that provides state management and complex multi-step validation out-of-the-box. Built from the ground up to pair perfectly with modern schema validators like **Zod**.
 
-## Features
+## ✨ Features
 
--   User-defined steps with custom React components
--   Centralized wizard state (`values`, `errors`, current step)
--   `Controller` API for wiring any input type
--   Per-step validation using a single full schema
--   Navigation controls: `next`, `prev`, `goTo`
--   Nested field paths (`profile.firstName`, `address.city`)
--   Optional persistence (`localStorage` or `sessionStorage`)
--   TypeScript-first API
+-   🧩 **Headless and unopinionated:** Bring your own UI components. We handle the state, navigation, and validation.
+-   🛡️ **Schema-driven validation:** Provide a single Zod schema for the entire form. Each step only validates its assigned fields.
+-   🎛️ **Controller API:** Easily wire any custom or native input type.
+-   🔄 **State persistence:** Built-in support to persist form progress via `localStorage` or `sessionStorage`.
+-   📝 **TypeScript-first:** Fully typed API for excellent autocomplete and developer experience.
+-   📂 **Nested field paths:** Seamlessly handle complex data structures like `profile.firstName` or `address.city`.
 
 ## Installation
 
@@ -25,99 +25,124 @@ npm install @avenra/react-step-form zod
 
 `@avenra/react-step-form` expects a schema object that exposes a `safeParse(data)` method and returns Zod-style issues (`path` + `message`). Zod works out of the box.
 
-## Quick Start
+## 🚀 Quick Start
+
+Here is a complete, multi-step example. We'll build a standard 2-step registration form.
+
+### 1. Define your Schema & Type
+
+React Step Form uses a single schema for the entire wizard. Each step handles its own subset of fields.
 
 ```tsx
-import { Controller, FormWizard } from "@avenra/react-step-form";
 import * as z from "zod";
 
 const schema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
 });
 
-type Values = z.infer<typeof schema>;
+type FormValues = z.infer<typeof schema>;
+```
 
-function AccountStep() {
+### 2. Build your Step Components
+
+Create standard React components. Use the `Controller` to easily connect your inputs to the wizard's state and validation engine without boilerplate.
+
+Tip: for full type safety on `name` and `field.value`, create a typed alias:
+
+```tsx
+const TypedController = Controller<FormValues>;
+```
+
+```tsx
+import { Controller } from "@avenra/react-step-form";
+
+const TypedController = Controller<FormValues>;
+
+export function AccountStep() {
     return (
-        <>
-            <Controller
+        <div>
+            <h2>Step 1: Account Details</h2>
+            <TypedController
                 name="email"
                 render={({ field, fieldState }) => (
-                    <label>
-                        Email
-                        <input
-                            value={String(field.value ?? "")}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                        />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
+                    <div className="input-group">
+                        <label>Email</label>
+                        <input type="email" {...field} />
+                        {fieldState.error && (
+                            <p className="error">{fieldState.error}</p>
+                        )}
+                    </div>
                 )}
             />
-            <Controller
+            <TypedController
                 name="password"
                 render={({ field, fieldState }) => (
-                    <label>
-                        Password
-                        <input
-                            type="password"
-                            value={String(field.value ?? "")}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                        />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
+                    <div className="input-group">
+                        <label>Password</label>
+                        <input type="password" {...field} />
+                        {fieldState.error && (
+                            <p className="error">{fieldState.error}</p>
+                        )}
+                    </div>
                 )}
             />
-        </>
+        </div>
     );
 }
 
-function ProfileStep() {
+export function ProfileStep() {
     return (
-        <>
-            <Controller
+        <div>
+            <h2>Step 2: User Profile</h2>
+            <TypedController
                 name="firstName"
                 render={({ field, fieldState }) => (
-                    <label>
-                        First name
-                        <input
-                            value={String(field.value ?? "")}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                        />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
+                    <div className="input-group">
+                        <label>First Name</label>
+                        <input {...field} />
+                        {fieldState.error && (
+                            <p className="error">{fieldState.error}</p>
+                        )}
+                    </div>
                 )}
             />
-            <Controller
+            <TypedController
                 name="lastName"
                 render={({ field, fieldState }) => (
-                    <label>
-                        Last name
-                        <input
-                            value={String(field.value ?? "")}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                        />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
+                    <div className="input-group">
+                        <label>Last Name</label>
+                        <input {...field} />
+                        {fieldState.error && (
+                            <p className="error">{fieldState.error}</p>
+                        )}
+                    </div>
                 )}
             />
-        </>
+        </div>
     );
 }
+```
+
+### 3. Assemble the Wizard
+
+Wire it all together using the `FormWizard` component. Use the `fields` array on each step to tell the wizard which schema properties map to which step!
+
+```tsx
+import { FormWizard } from "@avenra/react-step-form";
 
 export function RegistrationWizard() {
     return (
-        <FormWizard<Values>
+        <FormWizard
+            schema={schema}
+            defaultValues={{
+                email: "",
+                password: "",
+                firstName: "",
+                lastName: "",
+            }}
             steps={[
                 {
                     id: "account",
@@ -130,19 +155,63 @@ export function RegistrationWizard() {
                     fields: ["firstName", "lastName"],
                 },
             ]}
-            schema={schema}
-            defaultValues={{
-                email: "",
-                password: "",
-                firstName: "",
-                lastName: "",
-            }}
-            onSubmit={(data) => {
-                console.log("Submitted:", data);
+            onSubmit={async (data) => {
+                // Fired only when the entire schema is valid
+                console.log("Submitted payload:", data);
+                await submitToServer(data);
             }}
         />
     );
 }
+```
+
+## Type Safety
+
+-   `FormWizard` infers values from `schema` in most cases, so `<FormWizard<Values>>` is optional.
+-   `steps[].fields` is type-safe against valid nested paths (`FieldPath<TValues>`).
+-   `Controller` name and `field.value` are type-safe when using a typed alias:
+
+```tsx
+type Values = z.infer<typeof schema>;
+const TypedController = Controller<Values>;
+```
+
+-   `field.onChange` accepts either:
+    -   a direct value (`field.onChange("abc")`)
+    -   an event-like object (`field.onChange(event)`), so native spread works:
+
+```tsx
+<input {...field} />
+```
+
+Normalization currently handles text-like inputs, checkbox (`checked`), number (`valueAsNumber`) and multi-select (`selectedOptions`).
+
+### 4. Customizing Layout & Navigation (Optional)
+
+By default, the `FormWizard` renders standard `Previous`/`Next`/`Submit` buttons. If you want full control over the UI, use the `children` render prop:
+
+```tsx
+<FormWizard schema={schema} steps={steps} onSubmit={handleSubmit}>
+    {({ currentStep, isFirstStep, isLastStep, prev, next, submit, values }) => (
+        <div className="custom-wrapper">
+            <header>Current Step: {currentStep.id}</header>
+
+            {/* The active step component goes here */}
+            <currentStep.component />
+
+            <footer>
+                <button onClick={prev} disabled={isFirstStep}>
+                    Back
+                </button>
+                {!isLastStep ? (
+                    <button onClick={next}>Continue</button>
+                ) : (
+                    <button onClick={submit}>Complete Registration</button>
+                )}
+            </footer>
+        </div>
+    )}
+</FormWizard>
 ```
 
 ## API
@@ -154,7 +223,7 @@ interface FormWizardProps<TValues> {
     steps: Array<{
         id: string;
         component: React.ComponentType;
-        fields: string[];
+        fields: FieldPath<TValues>[];
         meta?: Record<string, unknown>;
     }>;
     schema: {
@@ -184,11 +253,11 @@ interface FormWizardProps<TValues> {
 
 ```ts
 interface ControllerProps<TValue = unknown> {
-    name: string;
+    name: FieldPath<TValues>;
     render: (args: {
         field: {
             value: TValue;
-            onChange: (next: TValue) => void;
+            onChange: (next: ControllerChangeArg<TValue>) => void;
             name: string;
         };
         fieldState: {
@@ -209,8 +278,13 @@ function useFormWizard<TValues = Record<string, unknown>>(): {
     currentStep: { id: string; fields: string[] };
     isFirstStep: boolean;
     isLastStep: boolean;
-    setValue(path: string, value: unknown): void;
-    getValue<TValue = unknown>(path: string): TValue | undefined;
+    setValue<TName extends FieldPath<TValues>>(
+        name: TName,
+        value: FieldPathValue<TValues, TName>,
+    ): void;
+    getValue<TName extends FieldPath<TValues>>(
+        name: TName,
+    ): FieldPathValue<TValues, TName> | undefined;
     next(): boolean;
     prev(): boolean;
     goTo(stepId: string): boolean;

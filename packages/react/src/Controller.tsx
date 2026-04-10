@@ -1,13 +1,20 @@
 import { useMemo, type ReactElement } from "react";
+import type { WizardValues } from "./internal";
 import { useWizardSnapshot, useWizardStore } from "./context";
-import type { ControllerProps } from "./types";
+import { extractChangeValue } from "./internal/changeValue";
+import type {
+    ControllerChangeArg,
+    ControllerProps,
+    FieldPath,
+    FieldPathValue,
+} from "./types";
 
-export function Controller<TValue = unknown>({
-    name,
-    render,
-}: ControllerProps<TValue>): ReactElement {
-    const store = useWizardStore();
-    const snapshot = useWizardSnapshot();
+export function Controller<
+    TValues extends WizardValues = WizardValues,
+    TName extends FieldPath<TValues> = FieldPath<TValues>,
+>({ name, render }: ControllerProps<TValues, TName>): ReactElement {
+    const store = useWizardStore<TValues>();
+    const snapshot = useWizardSnapshot<TValues>();
 
     const fieldState = useMemo(
         () => ({
@@ -17,14 +24,19 @@ export function Controller<TValue = unknown>({
         [snapshot.errors, name],
     );
 
-    const value = (store.getValue<TValue>(name) ?? "") as TValue;
+    const value = (store.getValue<FieldPathValue<TValues, TName>>(name) ??
+        "") as FieldPathValue<TValues, TName>;
 
     return (
         <>
             {render({
                 field: {
                     value,
-                    onChange: (next: TValue) => store.setValue(name, next),
+                    onChange: (
+                        next: ControllerChangeArg<
+                            FieldPathValue<TValues, TName>
+                        >,
+                    ) => store.setValue(name, extractChangeValue(next)),
                     name,
                 },
                 fieldState,

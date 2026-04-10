@@ -22,29 +22,19 @@ const schema = z.object({
 });
 
 type Values = z.infer<typeof schema>;
+const TypedController = Controller<Values>;
 
 function AccountStep() {
     return (
         <>
-            <Controller
+            <TypedController
                 name="email"
-                render={({ field }) => (
-                    <input
-                        value={String(field.value ?? "")}
-                        onChange={(event) => field.onChange(event.target.value)}
-                        placeholder="Email"
-                    />
-                )}
+                render={({ field }) => <input {...field} placeholder="Email" />}
             />
-            <Controller
+            <TypedController
                 name="password"
                 render={({ field }) => (
-                    <input
-                        type="password"
-                        value={String(field.value ?? "")}
-                        onChange={(event) => field.onChange(event.target.value)}
-                        placeholder="Password"
-                    />
+                    <input type="password" {...field} placeholder="Password" />
                 )}
             />
         </>
@@ -56,24 +46,16 @@ function ProfileStep() {
 
     return (
         <>
-            <Controller
+            <TypedController
                 name="firstName"
                 render={({ field }) => (
-                    <input
-                        value={String(field.value ?? "")}
-                        onChange={(event) => field.onChange(event.target.value)}
-                        placeholder="First Name"
-                    />
+                    <input {...field} placeholder="First Name" />
                 )}
             />
-            <Controller
+            <TypedController
                 name="lastName"
                 render={({ field }) => (
-                    <input
-                        value={String(field.value ?? "")}
-                        onChange={(event) => field.onChange(event.target.value)}
-                        placeholder="Last Name"
-                    />
+                    <input {...field} placeholder="Last Name" />
                 )}
             />
             <button type="button" onClick={wizard.prev}>
@@ -85,7 +67,7 @@ function ProfileStep() {
 
 export function RegistrationWizard() {
     return (
-        <FormWizard<Values>
+        <FormWizard
             steps={[
                 {
                     id: "account",
@@ -106,6 +88,19 @@ export function RegistrationWizard() {
     );
 }
 ```
+
+## Type Safety Notes
+
+-   `FormWizard` infers `values` from your `schema` in most cases.
+-   `Controller` gets path-safe `name` and strongly typed `field.value` when using:
+
+```tsx
+const TypedController = Controller<Values>;
+```
+
+-   `field.onChange` accepts either direct values or event-like objects.
+    -   Works with both `field.onChange("text")` and `<input {...field} />`.
+-   `steps[].fields` is type-safe against valid form paths.
 
 ## API
 
