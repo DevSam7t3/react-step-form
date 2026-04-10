@@ -1,0 +1,27 @@
+# Workspace-level publish ignore
+# Note: package publishing is driven from packages/react and uses `files` in package.json.
+
+# VCS and editor
+.git/
+.github/
+.vscode/
+.DS_Store
+
+# Dependencies and caches
+node_modules/
+.npm/
+coverage/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and temp
+*.log
+*.tmp
+*.tsbuildinfo
+
+# Development-only folders
+examples/
+tests/
