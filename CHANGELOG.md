@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning.
 
+## [0.3.2] - 2026-04-13
+
+### Fixed
+
+-   Fixed `Controller` nested path typing inference so `field.value` is inferred from `name` for nested fields.
+-   Removed the need for per-field controller aliases when working with nested schemas.
+
+### Changed
+
+-   Updated docs with nested field examples that work with a single `Controller<Values>` alias.
+
 ## [0.3.1] - 2026-04-13
 
 ### Added

@@ -1,14 +1,18 @@
-# react-step-form
+# ✨ react-step-form
 
-Flexible, type-safe multi-step forms for React with schema-driven validation and fully custom UI.
+🚀 Flexible, type-safe multi-step forms for React with schema-driven validation and fully customizable UI.
 
-## Installation
+---
+
+## 📦 Installation
 
 ```bash
 npm install @avenra/react-step-form zod
 ```
 
-## Quick Example
+---
+
+## ⚡ Quick Example
 
 ```tsx
 import { Controller, FormWizard, useFormWizard } from "@avenra/react-step-form";
@@ -91,28 +95,70 @@ export function RegistrationWizard() {
 }
 ```
 
-## Type Safety Notes
+---
 
--   `FormWizard` infers `values` from your `schema` in most cases.
--   `Controller` gets path-safe `name` and strongly typed `field.value` when using:
+## 🧠 Type Safety Notes
+
+-   `FormWizard` automatically infers `values` from your `schema` in most cases.
+-   `Controller` provides path-safe `name` and strongly typed `field.value` when used like this:
 
 ```tsx
 const TypedController = Controller<Values>;
 ```
 
--   `field.onChange` accepts either direct values or event-like objects.
-    -   Works with both `field.onChange("text")` and `<input {...field} />`.
--   `steps[].fields` is optional and type-safe against valid form paths.
--   If `fields` is omitted, the wizard infers step fields from mounted `Controller` names in that step.
+-   `field.onChange` supports both direct values and event-like objects.
 
-## New in This Version
+    -   Works seamlessly with `field.onChange("text")`
+    -   Also works with `<input {...field} />`
 
--   Automatic step field inference from mounted `Controller` names.
--   Rich form state helpers: `isStepValid`, `dirtyFields`, `touchedFields`, `watch`.
--   Derived navigation state: `totalSteps`, `canGoNext`, `canGoPrev`, `progress`.
--   Persistence hydration before first render (prevents refresh overwrite).
--   Persistence writes only when values actually change.
--   Built-in debug panel (`debug`, `debugPosition`) for live state inspection.
+-   `steps[].fields` is optional and ensures type safety for valid form paths.
+
+-   If `fields` is not provided, the wizard automatically infers step fields from mounted `Controller` names within that step.
+
+---
+
+### 🔗 Nested Fields — Out of the Box
+
+Nested paths are fully supported using a single typed controller alias.
+
+```tsx
+const TypedController = Controller<Values>;
+
+<TypedController
+    name="account.email"
+    render={({ field }) => (
+        <input
+            value={field.value ?? ""}
+            onChange={(e) => field.onChange(e.target.value)}
+        />
+    )}
+/>;
+```
+
+✨ `field.value` is automatically inferred based on the provided `name`, including nested paths.
+
+---
+
+## 🆕 New in This Version
+
+-   🔍 Automatic step field inference from mounted `Controller` names
+-   📊 Enhanced form state helpers:
+
+    -   `isStepValid`
+    -   `dirtyFields`
+    -   `touchedFields`
+    -   `watch`
+
+-   🧭 Derived navigation state:
+
+    -   `totalSteps`
+    -   `canGoNext`
+    -   `canGoPrev`
+    -   `progress`
+
+-   💾 Persistence hydration before first render (prevents overwriting on refresh)
+-   ⚡ Persistence writes only when values actually change
+-   🛠️ Built-in debug panel (`debug`, `debugPosition`) for real-time state inspection
 
 ```tsx
 <FormWizard
@@ -124,23 +170,29 @@ const TypedController = Controller<Values>;
 />
 ```
 
-## API
+---
 
--   `FormWizard`: Provides context, step validation, and navigation.
--   `Controller`: Connects arbitrary inputs to wizard state.
--   `useFormWizard`: Hook for reading state and controlling navigation.
+## 🧩 API
 
-### `useFormWizard` extras
+-   `FormWizard` → Handles context, step validation, and navigation
+-   `Controller` → Connects any input to the wizard state
+-   `useFormWizard` → Hook for accessing state and controlling navigation
+
+---
+
+### 🪝 `useFormWizard` Extras
 
 -   `isStepValid`: `boolean`
 -   `dirtyFields`: `Record<string, boolean>`
 -   `touchedFields`: `Record<string, boolean>`
--   `watch(name?)`: read one field or all values reactively
+-   `watch(name?)`: Reactively read a specific field or all values
 -   `totalSteps`, `canGoNext`, `canGoPrev`, `progress`
 
-### `FormWizard` render API extras
+---
 
-When using `children`, the render API now also includes:
+### 🎛️ `FormWizard` Render API Extras
+
+When using `children`, the render API also includes:
 
 -   `isStepValid`
 -   `dirtyFields`
@@ -151,13 +203,17 @@ When using `children`, the render API now also includes:
 -   `canGoPrev`
 -   `progress`
 
-### `Controller` field extras
+---
 
-`render({ field })` now provides:
+### 🎯 `Controller` Field Extras
+
+`render({ field })` provides:
 
 -   `field.value`
 -   `field.onChange(next)`
 -   `field.onBlur()`
 -   `field.name`
 
-For repository docs, contribution, and release flow, see the project root.
+---
+
+📌 For repository documentation, contribution guidelines, and release workflow, refer to the project root.

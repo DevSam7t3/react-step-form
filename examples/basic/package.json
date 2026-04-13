@@ -1,7 +1,7 @@
 {
     "name": "@react-step-form/example-basic",
     "private": true,
-    "version": "0.1.3",
+    "version": "0.1.4",
     "type": "module",
     "scripts": {
         "build": "tsc -p tsconfig.json",
@@ -10,7 +10,7 @@
     "dependencies": {
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
-        "@avenra/react-step-form": "0.3.1",
+        "@avenra/react-step-form": "0.3.2",
         "zod": "^3.24.3"
     }
 }
