@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ReactElement } from "react";
+import { useEffect, useMemo, type ReactElement, type ReactNode } from "react";
 import type { WizardValues } from "./internal";
 import {
     useWizardFieldRegistry,
@@ -8,15 +8,14 @@ import {
 import { extractChangeValue } from "./internal/changeValue";
 import type {
     ControllerChangeArg,
+    ControllerRenderProps,
     ControllerProps,
-    FieldPath,
-    FieldPathValue,
 } from "./types";
 
-export function Controller<
-    TValues extends WizardValues = WizardValues,
-    TName extends FieldPath<TValues> = FieldPath<TValues>,
->({ name, render }: ControllerProps<TValues, TName>): ReactElement {
+export function Controller<TValues extends WizardValues = WizardValues>({
+    name,
+    render,
+}: ControllerProps<TValues>): ReactElement {
     const store = useWizardStore<TValues>();
     const snapshot = useWizardSnapshot<TValues>();
     const { registerField, unregisterField, getCurrentStepId } =
@@ -33,25 +32,23 @@ export function Controller<
 
     const fieldState = useMemo(
         () => ({
-            error: snapshot.errors[name],
-            invalid: Boolean(snapshot.errors[name]),
+            error: snapshot.errors[name as string],
+            invalid: Boolean(snapshot.errors[name as string]),
         }),
         [snapshot.errors, name],
     );
 
-    const value = (store.getValue<FieldPathValue<TValues, TName>>(name) ??
-        "") as FieldPathValue<TValues, TName>;
+    const value = store.getValue(name as string) ?? "";
+    const typedRender = render as (
+        args: ControllerRenderProps<unknown>,
+    ) => ReactNode;
 
     return (
         <>
-            {render({
+            {typedRender({
                 field: {
                     value,
-                    onChange: (
-                        next: ControllerChangeArg<
-                            FieldPathValue<TValues, TName>
-                        >,
-                    ) =>
+                    onChange: (next: ControllerChangeArg<unknown>) =>
                         store.setValue(name, extractChangeValue(next), {
                             markTouched: true,
                         }),

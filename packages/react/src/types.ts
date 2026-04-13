@@ -141,12 +141,21 @@ export interface ControllerRenderProps<TValue = unknown> {
     fieldState: FieldState;
 }
 
-export interface ControllerProps<
-    TValues extends WizardValues = WizardValues,
-    TName extends FieldPath<TValues> = FieldPath<TValues>,
-> {
+type ControllerPropsForName<
+    TValues extends WizardValues,
+    TName extends FieldPath<TValues>,
+> = {
     name: TName;
     render: (
         args: ControllerRenderProps<FieldPathValue<TValues, TName>>,
     ) => ReactNode;
-}
+};
+
+export type ControllerProps<
+    TValues extends WizardValues = WizardValues,
+    TName extends FieldPath<TValues> = FieldPath<TValues>,
+> = [TName] extends [FieldPath<TValues>]
+    ? {
+          [TPath in FieldPath<TValues>]: ControllerPropsForName<TValues, TPath>;
+      }[FieldPath<TValues>]
+    : ControllerPropsForName<TValues, TName>;

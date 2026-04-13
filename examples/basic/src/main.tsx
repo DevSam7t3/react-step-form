@@ -46,19 +46,33 @@ class ErrorBoundary extends Component<
 }
 
 const schema = z.object({
-    email: z.string().email("Please provide a valid email."),
-    password: z.string().min(6, "Password must contain at least 6 characters."),
-    firstName: z.string().min(1, "First name is required."),
-    lastName: z.string().min(1, "Last name is required."),
+    account: z.object({
+        email: z.string().email("Please provide a valid email."),
+        password: z
+            .string()
+            .min(6, "Password must contain at least 6 characters.")
+            .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
+                message:
+                    "Password must contain at least one special character.",
+            }),
+    }),
+    profile: z.object({
+        firstName: z.string().min(1, "First name is required."),
+        lastName: z.string().min(1, "Last name is required."),
+    }),
 });
 
 type Values = z.infer<typeof schema>;
 const TypedController = Controller<Values>;
 const defaultValues: Values = {
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
+    account: {
+        email: "",
+        password: "",
+    },
+    profile: {
+        firstName: "",
+        lastName: "",
+    },
 };
 
 type LogEntry = {
@@ -72,18 +86,19 @@ function AccountStep() {
             <h2 className="step-title">Account</h2>
             <div className="field-grid">
                 <TypedController
-                    name="email"
+                    name="account.email"
                     render={({ field, fieldState }) => (
                         <label className="field">
                             Email
                             <input
-                                {...field}
                                 className="field-input"
-                                placeholder="you@example.com"
-                                onBlur={() => {
-                                    field.onBlur();
-                                    console.log("[example] email blurred");
+                                {...field}
+                                style={{
+                                    borderColor: fieldState.invalid
+                                        ? "red"
+                                        : undefined,
                                 }}
+                                placeholder="you@example.com"
                             />
                             {fieldState.error ? (
                                 <p className="field-error">
@@ -94,22 +109,20 @@ function AccountStep() {
                     )}
                 />
                 <TypedController
-                    name="password"
+                    name="account.password"
                     render={({ field, fieldState }) => (
                         <label className="field">
                             Password
                             <input
                                 type="password"
                                 className="field-input"
-                                value={field.value ?? ""}
-                                onChange={(event) =>
-                                    field.onChange(event.target.value)
-                                }
-                                onBlur={() => {
-                                    field.onBlur();
-                                    console.log("[example] password blurred");
-                                }}
                                 placeholder="******"
+                                {...field}
+                                style={{
+                                    borderColor: fieldState.invalid
+                                        ? "red"
+                                        : undefined,
+                                }}
                             />
                             {fieldState.error ? (
                                 <p className="field-error">
@@ -130,17 +143,18 @@ function ProfileStep() {
             <h2 className="step-title">Profile</h2>
             <div className="field-grid">
                 <TypedController
-                    name="firstName"
+                    name="profile.firstName"
                     render={({ field, fieldState }) => (
                         <label className="field">
                             First Name
                             <input
                                 className="field-input"
-                                value={field.value ?? ""}
-                                onChange={(event) =>
-                                    field.onChange(event.target.value)
-                                }
-                                onBlur={field.onBlur}
+                                {...field}
+                                style={{
+                                    borderColor: fieldState.invalid
+                                        ? "red"
+                                        : undefined,
+                                }}
                                 placeholder="Samir"
                             />
                             {fieldState.error ? (
@@ -152,17 +166,18 @@ function ProfileStep() {
                     )}
                 />
                 <TypedController
-                    name="lastName"
+                    name="profile.lastName"
                     render={({ field, fieldState }) => (
                         <label className="field">
                             Last Name
                             <input
                                 className="field-input"
-                                value={field.value ?? ""}
-                                onChange={(event) =>
-                                    field.onChange(event.target.value)
-                                }
-                                onBlur={field.onBlur}
+                                {...field}
+                                style={{
+                                    borderColor: fieldState.invalid
+                                        ? "red"
+                                        : undefined,
+                                }}
                                 placeholder="Khan"
                             />
                             {fieldState.error ? (
@@ -189,8 +204,8 @@ function WizardLayout({
 }) {
     const wizard = useFormWizard<Values>();
     const watchedAll = wizard.watch();
-    const watchedEmail = wizard.watch("email") ?? "";
-    const currentPassword = wizard.getValue("password") ?? "";
+    const watchedEmail = wizard.watch("account.email") ?? "";
+    const currentPassword = wizard.getValue("account.password") ?? "";
 
     useEffect(() => {
         onLog(
@@ -243,10 +258,10 @@ function WizardLayout({
     };
 
     const handleAutofill = () => {
-        wizard.setValue("email", "demo@example.com");
-        wizard.setValue("password", "secret123");
-        wizard.setValue("firstName", "Samir");
-        wizard.setValue("lastName", "Khan");
+        wizard.setValue("account.email", "demo@example.com");
+        wizard.setValue("account.password", "secret123");
+        wizard.setValue("profile.firstName", "Samir");
+        wizard.setValue("profile.lastName", "Khan");
         onLog("setValue() -> autofilled all fields");
     };
 
@@ -271,8 +286,8 @@ function WizardLayout({
     };
 
     const handleClearAccountErrors = () => {
-        wizard.clearErrors(["email", "password"]);
-        onLog("clearErrors(['email', 'password'])");
+        wizard.clearErrors(["account.email", "account.password"]);
+        onLog("clearErrors(['account.email', 'account.password'])");
     };
 
     const handleRenderApiValidateStep = () => {
@@ -347,7 +362,7 @@ function WizardLayout({
                         type="button"
                         className="btn btn-primary"
                         onClick={handleNext}
-                        disabled={!wizard.canGoNext}
+                        // disabled={!wizard.canGoNext}
                     >
                         Next
                     </button>
@@ -496,7 +511,7 @@ function App() {
                 dirty/touched tracking, watch, step validity, helpers, and
                 action logging.
             </p>
-            <FormWizard
+            <FormWizard<Values>
                 debug
                 debugPosition="bottom-right"
                 persist="localStorage"
@@ -505,7 +520,7 @@ function App() {
                     {
                         id: "account",
                         component: AccountStep,
-                        fields: ["email", "password"],
+                        fields: ["account.email", "account.password"],
                         meta: { title: "Account" },
                     },
                     {
