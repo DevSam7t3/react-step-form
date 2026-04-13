@@ -1,7 +1,19 @@
-import { Component, type ReactNode } from "react";
+import {
+    Component,
+    useCallback,
+    useEffect,
+    useState,
+    type ReactNode,
+} from "react";
 import { createRoot } from "react-dom/client";
 import * as z from "zod";
-import { Controller, FormWizard, useFormWizard } from "@avenra/react-step-form";
+import {
+    Controller,
+    FormWizard,
+    useFormWizard,
+    type FormWizardRenderApi,
+} from "@avenra/react-step-form";
+import "./styles.css";
 
 class ErrorBoundary extends Component<
     { children: ReactNode },
@@ -42,151 +54,474 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>;
 const TypedController = Controller<Values>;
+const defaultValues: Values = {
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+};
+
+type LogEntry = {
+    id: number;
+    message: string;
+};
 
 function AccountStep() {
     return (
-        <div>
-            <h2>Account</h2>
-            <TypedController
-                name="email"
-                render={({ field, fieldState }) => (
-                    <label>
-                        Email
-                        <input {...field} placeholder="you@example.com" />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
-                )}
-            />
-            <TypedController
-                name="password"
-                render={({ field, fieldState }) => (
-                    <label>
-                        Password
-                        <input
-                            type="password"
-                            value={field.value ?? ""}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                            placeholder="******"
-                        />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
-                )}
-            />
+        <div className="panel">
+            <h2 className="step-title">Account</h2>
+            <div className="field-grid">
+                <TypedController
+                    name="email"
+                    render={({ field, fieldState }) => (
+                        <label className="field">
+                            Email
+                            <input
+                                {...field}
+                                className="field-input"
+                                placeholder="you@example.com"
+                                onBlur={() => {
+                                    field.onBlur();
+                                    console.log("[example] email blurred");
+                                }}
+                            />
+                            {fieldState.error ? (
+                                <p className="field-error">
+                                    {fieldState.error}
+                                </p>
+                            ) : null}
+                        </label>
+                    )}
+                />
+                <TypedController
+                    name="password"
+                    render={({ field, fieldState }) => (
+                        <label className="field">
+                            Password
+                            <input
+                                type="password"
+                                className="field-input"
+                                value={field.value ?? ""}
+                                onChange={(event) =>
+                                    field.onChange(event.target.value)
+                                }
+                                onBlur={() => {
+                                    field.onBlur();
+                                    console.log("[example] password blurred");
+                                }}
+                                placeholder="******"
+                            />
+                            {fieldState.error ? (
+                                <p className="field-error">
+                                    {fieldState.error}
+                                </p>
+                            ) : null}
+                        </label>
+                    )}
+                />
+            </div>
         </div>
     );
 }
 
 function ProfileStep() {
     return (
-        <div>
-            <h2>Profile</h2>
-            <TypedController
-                name="firstName"
-                render={({ field, fieldState }) => (
-                    <label>
-                        First Name
-                        <input
-                            value={field.value ?? ""}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                            placeholder="Samir"
-                        />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
-                )}
-            />
-            <TypedController
-                name="lastName"
-                render={({ field, fieldState }) => (
-                    <label>
-                        Last Name
-                        <input
-                            value={field.value ?? ""}
-                            onChange={(event) =>
-                                field.onChange(event.target.value)
-                            }
-                            placeholder="Khan"
-                        />
-                        {fieldState.error ? <p>{fieldState.error}</p> : null}
-                    </label>
-                )}
-            />
+        <div className="panel">
+            <h2 className="step-title">Profile</h2>
+            <div className="field-grid">
+                <TypedController
+                    name="firstName"
+                    render={({ field, fieldState }) => (
+                        <label className="field">
+                            First Name
+                            <input
+                                className="field-input"
+                                value={field.value ?? ""}
+                                onChange={(event) =>
+                                    field.onChange(event.target.value)
+                                }
+                                onBlur={field.onBlur}
+                                placeholder="Samir"
+                            />
+                            {fieldState.error ? (
+                                <p className="field-error">
+                                    {fieldState.error}
+                                </p>
+                            ) : null}
+                        </label>
+                    )}
+                />
+                <TypedController
+                    name="lastName"
+                    render={({ field, fieldState }) => (
+                        <label className="field">
+                            Last Name
+                            <input
+                                className="field-input"
+                                value={field.value ?? ""}
+                                onChange={(event) =>
+                                    field.onChange(event.target.value)
+                                }
+                                onBlur={field.onBlur}
+                                placeholder="Khan"
+                            />
+                            {fieldState.error ? (
+                                <p className="field-error">
+                                    {fieldState.error}
+                                </p>
+                            ) : null}
+                        </label>
+                    )}
+                />
+            </div>
         </div>
     );
 }
 
-function WizardLayout({ submit }: { submit: () => boolean }) {
+function WizardLayout({
+    api,
+    logs,
+    onLog,
+}: {
+    api: FormWizardRenderApi<Values>;
+    logs: LogEntry[];
+    onLog: (message: string) => void;
+}) {
     const wizard = useFormWizard<Values>();
+    const watchedAll = wizard.watch();
+    const watchedEmail = wizard.watch("email") ?? "";
+    const currentPassword = wizard.getValue("password") ?? "";
+
+    useEffect(() => {
+        onLog(
+            `step changed -> ${wizard.currentStep.id} (${
+                wizard.currentStepIndex + 1
+            }/${wizard.totalSteps})`,
+        );
+    }, [
+        wizard.currentStep.id,
+        wizard.currentStepIndex,
+        wizard.totalSteps,
+        onLog,
+    ]);
+
+    useEffect(() => {
+        onLog(`isStepValid -> ${wizard.isStepValid}`);
+    }, [wizard.isStepValid, onLog]);
+
+    const handleNext = () => {
+        const moved = wizard.next();
+        onLog(`next() -> ${moved}`);
+    };
+
+    const handlePrev = () => {
+        const moved = wizard.prev();
+        onLog(`prev() -> ${moved}`);
+    };
+
+    const handleSubmit = () => {
+        const submitted = api.submit();
+        onLog(`submit() -> ${submitted}`);
+    };
+
+    const handleValidateStep = () => {
+        const result = wizard.validateStep();
+        onLog(
+            `validateStep() -> ${result.valid} (errors: ${
+                Object.keys(result.errors).length
+            })`,
+        );
+    };
+
+    const handleValidateAll = () => {
+        const result = wizard.validateAll();
+        onLog(
+            `validateAll() -> ${result.valid} (errors: ${
+                Object.keys(result.errors).length
+            })`,
+        );
+    };
+
+    const handleAutofill = () => {
+        wizard.setValue("email", "demo@example.com");
+        wizard.setValue("password", "secret123");
+        wizard.setValue("firstName", "Samir");
+        wizard.setValue("lastName", "Khan");
+        onLog("setValue() -> autofilled all fields");
+    };
+
+    const handleReset = () => {
+        wizard.reset(defaultValues);
+        onLog("reset(defaultValues)");
+    };
+
+    const handleGoToAccount = () => {
+        const moved = wizard.goTo("account");
+        onLog(`goTo('account') -> ${moved}`);
+    };
+
+    const handleGoToProfile = () => {
+        const moved = wizard.goTo("profile");
+        onLog(`goTo('profile') -> ${moved}`);
+    };
+
+    const handleClearErrors = () => {
+        wizard.clearErrors();
+        onLog("clearErrors()");
+    };
+
+    const handleClearAccountErrors = () => {
+        wizard.clearErrors(["email", "password"]);
+        onLog("clearErrors(['email', 'password'])");
+    };
+
+    const handleRenderApiValidateStep = () => {
+        const valid = api.validateStep();
+        onLog(`renderApi.validateStep() -> ${valid}`);
+    };
+
+    const StepComponent =
+        wizard.currentStep.id === "account" ? AccountStep : ProfileStep;
 
     return (
         <section>
-            {wizard.currentStep.id === "account" ? (
-                <AccountStep />
-            ) : (
-                <ProfileStep />
-            )}
+            <h2 className="step-title">Live Wizard Playground</h2>
+            <p className="app-subtitle">
+                Uses all major APIs with UI state + logs. Open console for extra
+                events.
+            </p>
 
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            <div className="panel panel-muted top-stats">
+                <div className="stat-line">
+                    Step: <strong>{wizard.currentStep.id}</strong> (
+                    {wizard.currentStepIndex + 1}/{wizard.totalSteps})
+                </div>
+                <div className="progress-wrap">
+                    <div className="stat-line">
+                        Progress:{" "}
+                        <strong>{Math.round(wizard.progress)}%</strong>
+                    </div>
+                    <div className="progress-track">
+                        <div
+                            className="progress-fill"
+                            style={{ width: `${wizard.progress}%` }}
+                        />
+                    </div>
+                </div>
+                <div className="chip-row">
+                    <span
+                        className={`chip ${wizard.canGoPrev ? "ok" : "warn"}`}
+                    >
+                        canGoPrev: {String(wizard.canGoPrev)}
+                    </span>
+                    <span
+                        className={`chip ${wizard.canGoNext ? "ok" : "warn"}`}
+                    >
+                        canGoNext: {String(wizard.canGoNext)}
+                    </span>
+                    <span
+                        className={`chip ${wizard.isStepValid ? "ok" : "warn"}`}
+                    >
+                        isStepValid: {String(wizard.isStepValid)}
+                    </span>
+                </div>
+                <div className="stat-line">
+                    watched email: <strong>{watchedEmail || "(empty)"}</strong>{" "}
+                    | password length: <strong>{currentPassword.length}</strong>
+                </div>
+            </div>
+
+            <StepComponent />
+
+            <div className="button-row">
                 <button
                     type="button"
-                    onClick={wizard.prev}
-                    disabled={wizard.isFirstStep}
+                    className="btn"
+                    onClick={handlePrev}
+                    disabled={!wizard.canGoPrev}
                 >
                     Previous
                 </button>
                 {!wizard.isLastStep ? (
-                    <button type="button" onClick={wizard.next}>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleNext}
+                        disabled={!wizard.canGoNext}
+                    >
                         Next
                     </button>
                 ) : (
-                    <button type="button" onClick={submit}>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={handleSubmit}
+                    >
                         Submit
                     </button>
                 )}
+                <button
+                    className="btn"
+                    type="button"
+                    onClick={handleGoToAccount}
+                >
+                    Go to Account
+                </button>
+                <button
+                    className="btn"
+                    type="button"
+                    onClick={handleGoToProfile}
+                >
+                    Go to Profile
+                </button>
             </div>
 
-            <pre style={{ marginTop: 16, fontSize: 12 }}>
-                {JSON.stringify(wizard.values, null, 2)}
+            <div className="button-row">
+                <button
+                    className="btn"
+                    type="button"
+                    onClick={handleValidateStep}
+                >
+                    validateStep()
+                </button>
+                <button
+                    className="btn"
+                    type="button"
+                    onClick={handleRenderApiValidateStep}
+                >
+                    renderApi.validateStep()
+                </button>
+                <button
+                    className="btn"
+                    type="button"
+                    onClick={handleValidateAll}
+                >
+                    validateAll()
+                </button>
+                <button
+                    className="btn"
+                    type="button"
+                    onClick={handleClearErrors}
+                >
+                    clearErrors()
+                </button>
+                <button
+                    className="btn"
+                    type="button"
+                    onClick={handleClearAccountErrors}
+                >
+                    clear account errors
+                </button>
+                <button
+                    className="btn btn-primary"
+                    type="button"
+                    onClick={handleAutofill}
+                >
+                    autofill via setValue()
+                </button>
+                <button
+                    className="btn btn-warn"
+                    type="button"
+                    onClick={handleReset}
+                >
+                    reset()
+                </button>
+            </div>
+
+            <h3 className="step-title" style={{ marginTop: 16 }}>
+                State (watch + maps)
+            </h3>
+            <pre className="code-box">
+                {JSON.stringify(
+                    {
+                        watch: watchedAll,
+                        values: wizard.values,
+                        errors: wizard.errors,
+                        dirtyFields: wizard.dirtyFields,
+                        touchedFields: wizard.touchedFields,
+                        // also show render-prop API values to demonstrate parity
+                        renderApi: {
+                            progress: api.progress,
+                            totalSteps: api.totalSteps,
+                            canGoNext: api.canGoNext,
+                            canGoPrev: api.canGoPrev,
+                            isStepValid: api.isStepValid,
+                        },
+                    },
+                    null,
+                    2,
+                )}
             </pre>
+
+            <h3 className="step-title" style={{ marginTop: 16 }}>
+                Event Log
+            </h3>
+            <div className="log-box">
+                {logs.length === 0 ? (
+                    <div className="muted">No events yet.</div>
+                ) : (
+                    logs.map((log) => (
+                        <div className="log-line" key={log.id}>
+                            {log.message}
+                        </div>
+                    ))
+                )}
+            </div>
         </section>
     );
 }
 
 function App() {
+    const [logs, setLogs] = useState<LogEntry[]>([]);
+
+    const onLog = useCallback((message: string) => {
+        const timestamp = new Date().toLocaleTimeString();
+        const formatted = `[${timestamp}] ${message}`;
+        console.log("[example]", message);
+
+        setLogs((current) => {
+            const next = [
+                { id: Date.now() + Math.random(), message: formatted },
+                ...current,
+            ];
+            return next.slice(0, 40);
+        });
+    }, []);
+
     return (
-        <main style={{ margin: "2rem auto", maxWidth: 520 }}>
-            <h1>react-step-form</h1>
-            <p style={{ marginTop: 0, color: "#555" }}>
-                Step fields are inferred automatically from mounted Controller
-                names.
+        <main className="app-shell">
+            <h1 className="app-title">react-step-form</h1>
+            <p className="app-subtitle">
+                Demonstrates all available options: persistence, debug panel,
+                dirty/touched tracking, watch, step validity, helpers, and
+                action logging.
             </p>
             <FormWizard
                 debug
+                debugPosition="bottom-right"
+                persist="localStorage"
+                persistKey="react-step-form-demo"
                 steps={[
                     {
                         id: "account",
                         component: AccountStep,
+                        fields: ["email", "password"],
+                        meta: { title: "Account" },
                     },
                     {
                         id: "profile",
                         component: ProfileStep,
+                        // fields intentionally omitted to demonstrate inference
+                        meta: { title: "Profile" },
                     },
                 ]}
                 schema={schema}
-                defaultValues={{
-                    email: "",
-                    password: "",
-                    firstName: "",
-                    lastName: "",
-                }}
+                defaultValues={defaultValues}
                 onSubmit={(values) => {
-                    console.log("submitted", values);
+                    onLog(`onSubmit -> ${JSON.stringify(values)}`);
                 }}
             >
-                {({ submit }) => <WizardLayout submit={submit} />}
+                {(api) => <WizardLayout api={api} logs={logs} onLog={onLog} />}
             </FormWizard>
         </main>
     );

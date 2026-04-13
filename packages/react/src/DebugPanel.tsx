@@ -65,7 +65,7 @@ export function DebugPanel<TValues extends WizardValues>({
     );
 
     const placementStyle: CSSProperties = {
-        position: position === "inline" ? "relative" : "fixed",
+        position: position === "inline" ? "relative" : "absolute",
         width: position === "inline" ? "100%" : 390,
         maxWidth: "100%",
         marginTop: position === "inline" ? 12 : undefined,

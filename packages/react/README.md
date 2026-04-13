@@ -108,6 +108,8 @@ const TypedController = Controller<Values>;
 ## New in This Version
 
 -   Automatic step field inference from mounted `Controller` names.
+-   Rich form state helpers: `isStepValid`, `dirtyFields`, `touchedFields`, `watch`.
+-   Derived navigation state: `totalSteps`, `canGoNext`, `canGoPrev`, `progress`.
 -   Persistence hydration before first render (prevents refresh overwrite).
 -   Persistence writes only when values actually change.
 -   Built-in debug panel (`debug`, `debugPosition`) for live state inspection.
@@ -127,5 +129,35 @@ const TypedController = Controller<Values>;
 -   `FormWizard`: Provides context, step validation, and navigation.
 -   `Controller`: Connects arbitrary inputs to wizard state.
 -   `useFormWizard`: Hook for reading state and controlling navigation.
+
+### `useFormWizard` extras
+
+-   `isStepValid`: `boolean`
+-   `dirtyFields`: `Record<string, boolean>`
+-   `touchedFields`: `Record<string, boolean>`
+-   `watch(name?)`: read one field or all values reactively
+-   `totalSteps`, `canGoNext`, `canGoPrev`, `progress`
+
+### `FormWizard` render API extras
+
+When using `children`, the render API now also includes:
+
+-   `isStepValid`
+-   `dirtyFields`
+-   `touchedFields`
+-   `watch`
+-   `totalSteps`
+-   `canGoNext`
+-   `canGoPrev`
+-   `progress`
+
+### `Controller` field extras
+
+`render({ field })` now provides:
+
+-   `field.value`
+-   `field.onChange(next)`
+-   `field.onBlur()`
+-   `field.name`
 
 For repository docs, contribution, and release flow, see the project root.

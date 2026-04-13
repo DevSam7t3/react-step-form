@@ -1,5 +1,6 @@
 import { getIn, mergeErrors, setIn } from "./utils";
 import type {
+    SetValueOptions,
     ValidationResult,
     WizardSnapshot,
     WizardState,
@@ -14,9 +15,16 @@ export class WizardStore<TValues extends WizardValues> {
     private readonly schemaAdapter: WizardStoreOptions<TValues>["schemaAdapter"];
     private readonly getFieldsForStep?: WizardStoreOptions<TValues>["getFieldsForStep"];
     private readonly subscribers = new Set<WizardSubscriber<TValues>>();
+    private defaultValues: TValues;
 
     private state: WizardState<TValues>;
     private cachedSnapshot: WizardSnapshot<TValues> | null = null;
+    private cachedStepValidation: {
+        stepIndex: number;
+        valuesRef: TValues;
+        fieldsKey: string;
+        result: ValidationResult;
+    } | null = null;
 
     constructor(options: WizardStoreOptions<TValues>) {
         if (options.steps.length === 0) {
@@ -26,9 +34,12 @@ export class WizardStore<TValues extends WizardValues> {
         this.steps = options.steps;
         this.schemaAdapter = options.schemaAdapter;
         this.getFieldsForStep = options.getFieldsForStep;
+        this.defaultValues = (options.defaultValues ?? {}) as TValues;
         this.state = {
-            values: (options.defaultValues ?? {}) as TValues,
+            values: this.defaultValues,
             errors: {},
+            dirtyFields: {},
+            touchedFields: {},
             currentStepIndex: 0,
         };
         this.cachedSnapshot = this.buildSnapshot();
@@ -62,6 +73,10 @@ export class WizardStore<TValues extends WizardValues> {
         this.emit();
     }
 
+    getTotalSteps(): number {
+        return this.steps.length;
+    }
+
     getValues(): TValues {
         return this.state.values;
     }
@@ -70,8 +85,40 @@ export class WizardStore<TValues extends WizardValues> {
         return getIn<TValue>(this.state.values, path);
     }
 
-    setValue(path: string, value: unknown): void {
+    setValue(path: string, value: unknown, options?: SetValueOptions): void {
+        const previousValue = this.getValue(path);
+        if (Object.is(previousValue, value)) {
+            if (options?.markTouched && !this.state.touchedFields[path]) {
+                this.state.touchedFields = {
+                    ...this.state.touchedFields,
+                    [path]: true,
+                };
+                this.emit();
+            }
+            return;
+        }
+
         this.state.values = setIn(this.state.values, path, value);
+
+        const defaultValue = getIn(this.defaultValues, path);
+        const isDirty = !Object.is(value, defaultValue);
+        if (isDirty) {
+            this.state.dirtyFields = {
+                ...this.state.dirtyFields,
+                [path]: true,
+            };
+        } else if (this.state.dirtyFields[path]) {
+            const nextDirtyFields = { ...this.state.dirtyFields };
+            delete nextDirtyFields[path];
+            this.state.dirtyFields = nextDirtyFields;
+        }
+
+        if (options?.markTouched && !this.state.touchedFields[path]) {
+            this.state.touchedFields = {
+                ...this.state.touchedFields,
+                [path]: true,
+            };
+        }
 
         if (this.state.errors[path]) {
             const nextErrors = { ...this.state.errors };
@@ -83,10 +130,25 @@ export class WizardStore<TValues extends WizardValues> {
     }
 
     reset(nextValues?: Partial<TValues>): void {
+        this.defaultValues = (nextValues ?? {}) as TValues;
         this.state = {
-            values: (nextValues ?? {}) as TValues,
+            values: this.defaultValues,
             errors: {},
+            dirtyFields: {},
+            touchedFields: {},
             currentStepIndex: 0,
+        };
+        this.emit();
+    }
+
+    markTouched(path: string): void {
+        if (this.state.touchedFields[path]) {
+            return;
+        }
+
+        this.state.touchedFields = {
+            ...this.state.touchedFields,
+            [path]: true,
         };
         this.emit();
     }
@@ -113,6 +175,7 @@ export class WizardStore<TValues extends WizardValues> {
     }
 
     validateCurrentStep(): ValidationResult {
+        this.cachedStepValidation = null;
         const currentStep = this.steps[this.state.currentStepIndex];
         const fields = this.resolveStepFields(currentStep);
         const result = this.schemaAdapter.validateFields(
@@ -125,6 +188,35 @@ export class WizardStore<TValues extends WizardValues> {
             this.mapStepFieldErrors(fields, result.errors),
         );
         this.emit();
+
+        return result;
+    }
+
+    getCurrentStepValidation(): ValidationResult {
+        const currentStep = this.steps[this.state.currentStepIndex];
+        const fields = this.resolveStepFields(currentStep);
+        const fieldsKey = fields.join("|");
+
+        if (
+            this.cachedStepValidation &&
+            this.cachedStepValidation.stepIndex ===
+                this.state.currentStepIndex &&
+            this.cachedStepValidation.valuesRef === this.state.values &&
+            this.cachedStepValidation.fieldsKey === fieldsKey
+        ) {
+            return this.cachedStepValidation.result;
+        }
+
+        const result = this.schemaAdapter.validateFields(
+            this.state.values,
+            fields,
+        );
+        this.cachedStepValidation = {
+            stepIndex: this.state.currentStepIndex,
+            valuesRef: this.state.values,
+            fieldsKey,
+            result,
+        };
 
         return result;
     }
@@ -196,6 +288,7 @@ export class WizardStore<TValues extends WizardValues> {
     }
 
     private emit(): void {
+        this.cachedStepValidation = null;
         this.cachedSnapshot = this.buildSnapshot();
         const snapshot = this.getSnapshot();
         for (const subscriber of this.subscribers) {

@@ -51,7 +51,11 @@ export function Controller<
                         next: ControllerChangeArg<
                             FieldPathValue<TValues, TName>
                         >,
-                    ) => store.setValue(name, extractChangeValue(next)),
+                    ) =>
+                        store.setValue(name, extractChangeValue(next), {
+                            markTouched: true,
+                        }),
+                    onBlur: () => store.markTouched(name),
                     name,
                 },
                 fieldState,

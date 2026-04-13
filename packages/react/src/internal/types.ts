@@ -33,6 +33,8 @@ export interface WizardStoreOptions<TValues extends WizardValues> {
 export interface WizardState<TValues extends WizardValues> {
     values: TValues;
     errors: Record<string, string>;
+    dirtyFields: Record<string, boolean>;
+    touchedFields: Record<string, boolean>;
     currentStepIndex: number;
 }
 
@@ -41,6 +43,10 @@ export interface WizardSnapshot<TValues extends WizardValues>
     currentStep: WizardStep;
     isFirstStep: boolean;
     isLastStep: boolean;
+}
+
+export interface SetValueOptions {
+    markTouched?: boolean;
 }
 
 export type WizardSubscriber<TValues extends WizardValues> = (

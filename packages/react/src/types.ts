@@ -69,6 +69,17 @@ export interface FormStep<TValues extends WizardValues = WizardValues> {
 
 export interface FormWizardRenderApi<TValues extends WizardValues>
     extends WizardSnapshot<TValues> {
+    isStepValid: boolean;
+    watch: {
+        (): TValues;
+        <TName extends FieldPath<TValues>>(name: TName):
+            | FieldPathValue<TValues, TName>
+            | undefined;
+    };
+    totalSteps: number;
+    canGoNext: boolean;
+    canGoPrev: boolean;
+    progress: number;
     next: () => boolean;
     prev: () => boolean;
     goTo: (stepId: string) => boolean;
@@ -124,6 +135,7 @@ export interface ControllerRenderProps<TValue = unknown> {
     field: {
         value: TValue;
         onChange: (next: ControllerChangeArg<TValue>) => void;
+        onBlur: () => void;
         name: string;
     };
     fieldState: FieldState;

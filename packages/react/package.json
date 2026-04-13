@@ -1,6 +1,6 @@
 {
     "name": "@avenra/react-step-form",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Flexible multi-step forms with schema-driven validation",
     "keywords": [
         "react",

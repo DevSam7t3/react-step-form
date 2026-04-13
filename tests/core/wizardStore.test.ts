@@ -118,4 +118,37 @@ describe("WizardStore", () => {
         expect(store.getSnapshot().errors.email).toBe("Email is invalid");
         expect(store.getSnapshot().errors.password).toBeUndefined();
     });
+
+    it("tracks dirty fields against defaults and clears when value returns to default", () => {
+        const store = new WizardStore<TestValues>({
+            steps: [{ id: "account", fields: ["email"] }],
+            schemaAdapter: createZodAdapter(schema),
+            defaultValues: { email: "start@demo.dev" },
+        });
+
+        store.setValue("email", "changed@demo.dev");
+        expect(store.getSnapshot().dirtyFields.email).toBe(true);
+
+        store.setValue("email", "start@demo.dev");
+        expect(store.getSnapshot().dirtyFields.email).toBeUndefined();
+    });
+
+    it("tracks touched fields and computes step validity without mutating errors", () => {
+        const store = new WizardStore<TestValues>({
+            steps: [{ id: "account", fields: ["email"] }],
+            schemaAdapter: createZodAdapter(schema),
+            defaultValues: { email: "bad" },
+        });
+
+        store.markTouched("email");
+        expect(store.getSnapshot().touchedFields.email).toBe(true);
+
+        const stepValidation = store.getCurrentStepValidation();
+        expect(stepValidation.valid).toBe(false);
+        expect(store.getSnapshot().errors.email).toBeUndefined();
+
+        const submittedStepValidation = store.validateCurrentStep();
+        expect(submittedStepValidation.valid).toBe(false);
+        expect(store.getSnapshot().errors.email).toBe("Email is invalid");
+    });
 });

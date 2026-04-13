@@ -14,6 +14,9 @@ Flexible, type-safe multi-step wizard forms for React with built-in schema-drive
 -   🛡️ **Schema-driven validation:** Provide a single Zod schema for the entire form. Each step only validates its assigned fields.
 -   🧠 **Auto field inference:** Skip `steps[].fields` and infer step fields directly from mounted `Controller` names.
 -   🎛️ **Controller API:** Easily wire any custom or native input type.
+-   👀 **Reactive watch API:** Read live values for one field or the full form via `watch()`.
+-   🧭 **Navigation helpers:** `totalSteps`, `canGoNext`, `canGoPrev`, and `progress` are exposed out of the box.
+-   ✍️ **Interaction tracking:** `dirtyFields` and `touchedFields` are tracked per field.
 -   🔄 **State persistence:** Built-in support to persist form progress via `localStorage` or `sessionStorage`.
 -   🪟 **Debug mode:** Optional live debug panel via `debug` and `debugPosition`.
 -   📝 **TypeScript-first:** Fully typed API for excellent autocomplete and developer experience.
@@ -192,6 +195,8 @@ const TypedController = Controller<Values>;
 
 Normalization currently handles text-like inputs, checkbox (`checked`), number (`valueAsNumber`) and multi-select (`selectedOptions`).
 
+-   `field.onBlur()` is also available and marks the field as touched.
+
 ### Customizing Layout & Navigation (Optional)
 
 By default, the `FormWizard` renders standard `Previous`/`Next`/`Submit` buttons. If you want full control over the UI, use the `children` render prop:
@@ -273,6 +278,7 @@ interface ControllerProps<TValue = unknown> {
         field: {
             value: TValue;
             onChange: (next: ControllerChangeArg<TValue>) => void;
+            onBlur: () => void;
             name: string;
         };
         fieldState: {
@@ -289,10 +295,21 @@ interface ControllerProps<TValue = unknown> {
 function useFormWizard<TValues = Record<string, unknown>>(): {
     values: TValues;
     errors: Record<string, string>;
+    dirtyFields: Record<string, boolean>;
+    touchedFields: Record<string, boolean>;
     currentStepIndex: number;
     currentStep: { id: string; fields: string[] };
     isFirstStep: boolean;
     isLastStep: boolean;
+    isStepValid: boolean;
+    watch(): TValues;
+    watch<TName extends FieldPath<TValues>>(
+        name: TName,
+    ): FieldPathValue<TValues, TName> | undefined;
+    totalSteps: number;
+    canGoNext: boolean;
+    canGoPrev: boolean;
+    progress: number;
     setValue<TName extends FieldPath<TValues>>(
         name: TName,
         value: FieldPathValue<TValues, TName>,

@@ -7,8 +7,15 @@ import {
     type WizardStep,
     type WizardValues,
 } from "./internal";
-import { WizardProvider, useWizardSnapshot, useWizardStore } from "./context";
+import {
+    WizardProvider,
+    useWizardFieldRegistryVersion,
+    useWizardSnapshot,
+    useWizardStore,
+} from "./context";
 import type {
+    FieldPath,
+    FieldPathValue,
     FormStep,
     FormWizardProps,
     FormWizardRenderApi,
@@ -73,6 +80,8 @@ function InternalFormWizard<TValues extends WizardValues>({
 }): ReactElement {
     const store = useWizardStore<TValues>();
     const snapshot = useWizardSnapshot<TValues>();
+    const fieldRegistryVersion = useWizardFieldRegistryVersion();
+    const totalSteps = store.getTotalSteps();
     const lastPersistedRef = useRef<string | null>(null);
     const currentStep = steps[snapshot.currentStepIndex];
     const StepComponent = currentStep.component;
@@ -97,9 +106,26 @@ function InternalFormWizard<TValues extends WizardValues>({
         lastPersistedRef.current = serializedValues;
     }, [snapshot.values, storage, persistKey]);
 
-    const api = useMemo<FormWizardRenderApi<TValues>>(
-        () => ({
+    const api = useMemo<FormWizardRenderApi<TValues>>(() => {
+        const isStepValid = store.getCurrentStepValidation().valid;
+        const canGoPrev = !snapshot.isFirstStep;
+        const canGoNext = !snapshot.isLastStep && isStepValid;
+        const progress = ((snapshot.currentStepIndex + 1) / totalSteps) * 100;
+
+        return {
             ...snapshot,
+            isStepValid,
+            watch: (<TName extends FieldPath<TValues>>(name?: TName) => {
+                if (!name) {
+                    return snapshot.values;
+                }
+
+                return store.getValue<FieldPathValue<TValues, TName>>(name);
+            }) as FormWizardRenderApi<TValues>["watch"],
+            totalSteps,
+            canGoNext,
+            canGoPrev,
+            progress,
             next: () => store.next(),
             prev: () => store.prev(),
             goTo: (stepId) => store.goTo(stepId),
@@ -113,9 +139,8 @@ function InternalFormWizard<TValues extends WizardValues>({
                 void onSubmit(store.getValues());
                 return true;
             },
-        }),
-        [snapshot, store, onSubmit],
-    );
+        };
+    }, [snapshot, store, onSubmit, totalSteps, fieldRegistryVersion]);
 
     if (children) {
         return (
