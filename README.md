@@ -36,8 +36,6 @@ Links: [NPM](https://www.npmjs.com/package/@avenra/react-step-form) · [Issues](
 
 ![Project Screenshot](assets/screenshot.png)
 
-Replace `assets/screenshot.png` with a real screenshot or GIF of your form flow.
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Built With
